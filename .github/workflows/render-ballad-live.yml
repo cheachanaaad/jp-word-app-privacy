@@ -1,0 +1,197 @@
+name: Render Ballad Live Player
+
+on:
+  push:
+    branches:
+      - main
+      - feat/ballad-live-player
+    paths:
+      - "music/source/song.mid.gz.b64.*"
+      - "music/index.html"
+      - "music/summary.json"
+      - ".github/workflows/render-ballad-live.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-ballad-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Install MIDI and audio tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends fluidsynth fluid-soundfont-gm ffmpeg
+          python -m pip install mido==1.3.3
+
+      - name: Restore verified MIDI
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat music/source/song.mid.gz.b64.* | tr -d '\r\n' | base64 --decode > /tmp/song.mid.gz
+          echo "34bb32e1af25668a9026007a2ca35c6f1faf5fe326b0d2ada3f9039fec7c2e67  /tmp/song.mid.gz" | sha256sum --check
+          gzip -dc /tmp/song.mid.gz > music/song.mid
+          echo "cc9d6993f1909173c4bad0050c63e12b30b9f225d0bbdc88687d89cce8186505  music/song.mid" | sha256sum --check
+
+      - name: Render balanced instrument stems and MP3
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOUNDFONT=$(dpkg -L fluid-soundfont-gm | grep -Ei '\.(sf2|sf3)$' | head -n 1)
+          test -f "$SOUNDFONT"
+          export SOUNDFONT
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import subprocess
+          import mido
+
+          root = Path('music')
+          work = Path('/tmp/ballad-stems')
+          work.mkdir(parents=True, exist_ok=True)
+          source = mido.MidiFile(root / 'song.mid')
+          groups = {
+              'piano': ({'Piano RH', 'Piano LH'}, {0}, 1.00),
+              'bass': ({'Bass'}, {1}, 0.48),
+              'strings': ({'Strings'}, {2}, 0.34),
+              'drums': ({'Drums'}, {9}, 0.44),
+          }
+
+          def name(track):
+              for msg in track:
+                  if msg.type == 'track_name':
+                      return str(msg.name)
+              return ''
+
+          def clone(track):
+              out = mido.MidiTrack()
+              out.extend(msg.copy() for msg in track)
+              return out
+
+          def controllers(track, channels):
+              absolute = 0
+              kept = []
+              for msg in track:
+                  absolute += int(msg.time)
+                  if msg.is_meta:
+                      if msg.type == 'track_name':
+                          kept.append((absolute, mido.MetaMessage('track_name', name='Controllers')))
+                      continue
+                  if getattr(msg, 'channel', None) in channels:
+                      kept.append((absolute, msg.copy(time=0)))
+              if not any(not msg.is_meta for _, msg in kept):
+                  return None
+              out = mido.MidiTrack(); previous = 0
+              for tick, msg in sorted(kept, key=lambda item: item[0]):
+                  msg.time = max(0, tick - previous); out.append(msg); previous = tick
+              out.append(mido.MetaMessage('end_of_track', time=0))
+              return out
+
+          rendered = []
+          for group, (track_names, channels, weight) in groups.items():
+              selected = [track for track in source.tracks if name(track) in track_names]
+              if not selected:
+                  raise SystemExit(f'Missing MIDI group: {group}')
+              stem = mido.MidiFile(type=1, ticks_per_beat=source.ticks_per_beat)
+              stem.tracks.append(clone(source.tracks[0]))
+              for track in selected:
+                  stem.tracks.append(clone(track))
+              for track in source.tracks:
+                  if name(track) == 'Controllers':
+                      filtered = controllers(track, channels)
+                      if filtered is not None:
+                          stem.tracks.append(filtered)
+              stem_midi = work / f'{group}.mid'; stem_wav = work / f'{group}.wav'
+              stem.save(stem_midi)
+              subprocess.run([
+                  'fluidsynth','-ni','-R','1','-C','1','-g','0.80','-r','44100',
+                  '-F',str(stem_wav),os.environ['SOUNDFONT'],str(stem_midi)
+              ], check=True)
+              rendered.append((group, stem_wav, weight))
+
+          command = ['ffmpeg','-y','-hide_banner','-loglevel','warning']
+          for _, path, _ in rendered:
+              command += ['-i', str(path)]
+          weights = ' '.join(str(weight) for _, _, weight in rendered)
+          graph = (
+              f"amix=inputs={len(rendered)}:weights='{weights}':normalize=0:duration=longest,"
+              'highpass=f=28,lowpass=f=16000,'
+              'acompressor=threshold=0.16:ratio=2.4:attack=25:release=220:makeup=1.55,'
+              'loudnorm=I=-14:LRA=10:TP=-1.0'
+          )
+          command += ['-filter_complex',graph,'-ar','44100','-ac','2','-c:a','libmp3lame','-b:a','160k',str(root/'song.mp3')]
+          subprocess.run(command, check=True)
+          PY
+
+      - name: Validate and record build
+        shell: bash
+        run: |
+          set -euo pipefail
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 music/song.mp3)
+          python - "$DURATION" <<'PY'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib, json, sys
+          import mido
+
+          duration = float(sys.argv[1])
+          if not 265 <= duration <= 275:
+              raise SystemExit(f'Unexpected duration: {duration}')
+          midi = mido.MidiFile('music/song.mid')
+          names = {msg.name for track in midi.tracks for msg in track if msg.type == 'track_name'}
+          required = {'Piano RH','Piano LH','Bass','Strings','Drums'}
+          if not required.issubset(names):
+              raise SystemExit(f'Missing tracks: {sorted(required - names)}')
+          if midi.ticks_per_beat != 480:
+              raise SystemExit(f'Unexpected TPB: {midi.ticks_per_beat}')
+          html = Path('music/index.html').read_text(encoding='utf-8')
+          for token in ('song.mp3','song.mid','Final Chorus (+2)'):
+              if token not in html:
+                  raise SystemExit(f'Player missing token: {token}')
+          if Path('music/song.mp3').stat().st_size < 3_000_000:
+              raise SystemExit('MP3 is unexpectedly small')
+
+          def sha(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+          build = {
+              'status': 'ready',
+              'built_at_utc': datetime.now(timezone.utc).isoformat(),
+              'source_commit': '${{ github.sha }}',
+              'duration_seconds': round(duration, 3),
+              'midi_bytes': Path('music/song.mid').stat().st_size,
+              'mp3_bytes': Path('music/song.mp3').stat().st_size,
+              'midi_sha256': sha('music/song.mid'),
+              'mp3_sha256': sha('music/song.mp3'),
+              'tracks': sorted(names),
+          }
+          Path('music/build.json').write_text(json.dumps(build, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(build, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit generated audio
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f music/song.mid music/song.mp3 music/build.json
+          if git diff --cached --quiet; then
+            echo "Rendered files are already current."
+          else
+            git commit -m "assets: render shared ballad player audio"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

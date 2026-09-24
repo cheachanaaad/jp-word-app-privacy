@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="남겨둔 마지막 말 — 68 BPM 한국형 이별 발라드 반주 공유 플레이어">
+  <title>남겨둔 마지막 말 — 공유 플레이어</title>
+  <style>
+    :root{color-scheme:dark;--bg:#080a0f;--panel:#11151d;--panel2:#171c26;--line:#283040;--text:#f4f5f7;--muted:#9aa4b5;--accent:#d7b879;--accent2:#8fa8d8;--shadow:0 24px 70px rgba(0,0,0,.42)}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:radial-gradient(circle at 20% 0%,#1d2230 0,#0b0e15 34%,var(--bg) 70%);font-family:ui-sans-serif,system-ui,-apple-system,"Pretendard","Noto Sans KR",sans-serif;color:var(--text)}
+    body{padding:clamp(18px,4vw,52px)}
+    button,a,input{font:inherit}
+    .wrap{width:min(980px,100%);margin:auto}
+    .hero{padding:clamp(24px,5vw,54px);border:1px solid rgba(255,255,255,.09);border-radius:28px;background:linear-gradient(145deg,rgba(25,30,41,.96),rgba(13,16,23,.96));box-shadow:var(--shadow);overflow:hidden;position:relative}
+    .hero:before{content:"";position:absolute;inset:-55% auto auto 55%;width:420px;height:420px;border-radius:50%;background:rgba(215,184,121,.11);filter:blur(26px);pointer-events:none}
+    .eyebrow{margin:0 0 10px;color:var(--accent);font-size:.78rem;letter-spacing:.18em;font-weight:800}
+    h1{margin:0;font-size:clamp(2rem,7vw,4.4rem);line-height:1.02;letter-spacing:-.055em;max-width:820px}
+    .sub{margin:18px 0 0;color:var(--muted);font-size:clamp(.96rem,2vw,1.12rem);line-height:1.65;max-width:760px}
+    .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+    .fact{padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);color:#cbd2df;font-size:.83rem}
+    .player{margin-top:18px;padding:clamp(18px,4vw,30px);border:1px solid rgba(255,255,255,.08);border-radius:24px;background:rgba(17,21,29,.94);box-shadow:var(--shadow)}
+    audio{width:100%;height:44px}
+    .now{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin:20px 0 10px}
+    .now small{display:block;color:var(--muted);margin-bottom:4px}
+    #sectionName{font-size:clamp(1.08rem,3vw,1.35rem);font-weight:800}
+    #clock{font-variant-numeric:tabular-nums;color:#cfd6e2;white-space:nowrap}
+    .seek{width:100%;accent-color:var(--accent);cursor:pointer}
+    .actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+    .btn{border:1px solid var(--line);border-radius:14px;background:var(--panel2);color:var(--text);padding:12px 13px;text-decoration:none;text-align:center;cursor:pointer;transition:.16s ease}
+    .btn:hover,.btn:focus-visible{border-color:#526078;transform:translateY(-1px);outline:none}
+    .btn.primary{background:var(--accent);border-color:var(--accent);color:#19140b;font-weight:850}
+    .sectionTitle{margin:30px 0 12px;font-size:1rem;color:#d9dfe9}
+    .chapters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .chapter{min-height:66px;border:1px solid var(--line);border-radius:14px;background:#121720;color:#d9dfe9;padding:10px;text-align:left;cursor:pointer}
+    .chapter strong{display:block;font-size:.86rem;margin-bottom:5px}
+    .chapter span{font-size:.75rem;color:var(--muted)}
+    .chapter.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:#1c1a18}
+    .status{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+    .card{padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(17,21,29,.88)}
+    .card h2{font-size:.92rem;margin:0 0 10px;color:#d7dce5}
+    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.6}
+    code{color:#d7c59e}
+    footer{padding:22px 4px 0;text-align:center;color:#778194;font-size:.78rem}
+    @media(max-width:720px){body{padding:14px}.hero{border-radius:22px}.player{border-radius:20px}.actions{grid-template-columns:1fr 1fr}.chapters{grid-template-columns:1fr 1fr}.status{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <p class="eyebrow">SHARED BALLAD PLAYER</p>
+      <h1>남겨둔 마지막 말</h1>
+      <p class="sub">느린 한국형 이별 발라드 반주. F장조에서 시작해 브리지 뒤 G장조로 전조하며, 피아노·베이스·스트링·드럼이 단계적으로 쌓입니다.</p>
+      <div class="facts"><span class="fact">68 BPM</span><span class="fact">76마디</span><span class="fact">약 4분 28초</span><span class="fact">F → G 전조</span><span class="fact">멜로디 가이드 없음</span></div>
+    </section>
+
+    <section class="player" aria-label="음악 플레이어">
+      <audio id="audio" src="song.mp3" preload="metadata" controls></audio>
+      <div class="now"><div><small>현재 구간</small><div id="sectionName">Intro</div></div><div id="clock">0:00 / 4:28</div></div>
+      <input class="seek" id="seek" type="range" min="0" max="1000" value="0" aria-label="재생 위치">
+      <div class="actions">
+        <button class="btn primary" id="play" type="button">재생</button>
+        <button class="btn" id="restart" type="button">처음부터</button>
+        <a class="btn" href="song.mp3" download>MP3 저장</a>
+        <a class="btn" href="song.mid" download>MIDI 저장</a>
+      </div>
+      <h2 class="sectionTitle">구간 바로 이동</h2>
+      <div class="chapters" id="chapters"></div>
+    </section>
+
+    <section class="status">
+      <article class="card"><h2>같은 화면</h2><p>이 주소에 접속하면 PC와 모바일에서 동일한 최신 플레이어와 같은 반주 파일을 봅니다. 재생 위치와 음량은 각 기기에서 독립적으로 동작합니다.</p></article>
+      <article class="card"><h2>자동 갱신</h2><p>작곡 결과가 바뀌면 GitHub Actions가 MIDI를 복원하고 음원을 다시 렌더링합니다. 빌드 정보는 <a href="build.json" style="color:var(--accent2)">build.json</a>에서 확인할 수 있습니다.</p></article>
+    </section>
+    <footer>AI Composer Studio · 공개 공유용 정적 플레이어</footer>
+  </main>
+  <script>
+    const audio=document.querySelector('#audio');
+    const seek=document.querySelector('#seek');
+    const play=document.querySelector('#play');
+    const restart=document.querySelector('#restart');
+    const clock=document.querySelector('#clock');
+    const sectionName=document.querySelector('#sectionName');
+    const chaptersEl=document.querySelector('#chapters');
+    const sections=[
+      ['Intro',0],['Verse 1A',14.118],['Verse 1B',42.353],['Pre 1',56.471],['Chorus 1',70.588],['Interlude',98.824],['Verse 2',112.941],['Pre 2',141.176],['Chorus 2',155.294],['Bridge A',183.529],['Bridge B',197.647],['Final Chorus (+2)',211.765],['Final Tag',240],['Outro',254.118]
+    ];
+    const fmt=s=>{if(!Number.isFinite(s))return '0:00';s=Math.max(0,Math.round(s));return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`};
+    const buttons=sections.map(([name,time],i)=>{const b=document.createElement('button');b.className='chapter';b.type='button';b.innerHTML=`<strong>${name}</strong><span>${fmt(time)}</span>`;b.onclick=()=>{audio.currentTime=time;audio.play()};chaptersEl.appendChild(b);return b});
+    const update=()=>{
+      const duration=Number.isFinite(audio.duration)?audio.duration:268.235;
+      seek.value=duration?Math.round(audio.currentTime/duration*1000):0;
+      clock.textContent=`${fmt(audio.currentTime)} / ${fmt(duration)}`;
+      let index=0;for(let i=0;i<sections.length;i++){if(audio.currentTime>=sections[i][1])index=i;else break}
+      sectionName.textContent=sections[index][0];buttons.forEach((b,i)=>b.classList.toggle('active',i===index));
+      play.textContent=audio.paused?'재생':'일시정지';
+    };
+    audio.addEventListener('timeupdate',update);audio.addEventListener('loadedmetadata',update);audio.addEventListener('play',update);audio.addEventListener('pause',update);audio.addEventListener('ended',update);
+    play.onclick=()=>audio.paused?audio.play():audio.pause();restart.onclick=()=>{audio.currentTime=0;audio.play()};
+    seek.oninput=()=>{const duration=Number.isFinite(audio.duration)?audio.duration:268.235;audio.currentTime=duration*Number(seek.value)/1000};
+    document.addEventListener('keydown',e=>{if(e.code==='Space'&&!['INPUT','BUTTON','A'].includes(document.activeElement.tagName)){e.preventDefault();play.click()}});
+    update();
+  </script>
+</body>
+</html>
