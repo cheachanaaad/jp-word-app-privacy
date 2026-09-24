@@ -1,0 +1,32 @@
+{
+  "title": "남겨둔 마지막 말",
+  "tempo_bpm": 68,
+  "time_signature": "4/4",
+  "bars": 76,
+  "duration_seconds": 268.235,
+  "key_start": "F major",
+  "key_final_chorus": "G major",
+  "tracks": {
+    "piano_rh_notes": 746,
+    "piano_lh_notes": 228,
+    "bass_notes": 304,
+    "strings_notes": 650,
+    "drums_notes": 1641
+  },
+  "sections": [
+    {"name":"Intro","start_seconds":0,"bars":4},
+    {"name":"Verse 1A","start_seconds":14.118,"bars":8},
+    {"name":"Verse 1B","start_seconds":42.353,"bars":4},
+    {"name":"Pre 1","start_seconds":56.471,"bars":4},
+    {"name":"Chorus 1","start_seconds":70.588,"bars":8},
+    {"name":"Interlude","start_seconds":98.824,"bars":4},
+    {"name":"Verse 2","start_seconds":112.941,"bars":8},
+    {"name":"Pre 2","start_seconds":141.176,"bars":4},
+    {"name":"Chorus 2","start_seconds":155.294,"bars":8},
+    {"name":"Bridge A","start_seconds":183.529,"bars":4},
+    {"name":"Bridge B","start_seconds":197.647,"bars":4},
+    {"name":"Final Chorus (+2)","start_seconds":211.765,"bars":8},
+    {"name":"Final Tag","start_seconds":240,"bars":4},
+    {"name":"Outro","start_seconds":254.118,"bars":4}
+  ]
+}
