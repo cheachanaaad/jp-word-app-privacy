@@ -1,0 +1,19 @@
+{
+  "status": "ready",
+  "built_at_utc": "2026-09-24T01:37:02.302351+00:00",
+  "source_commit": "3e5ea33840eaaa6069ac98f9a88356a22b92b8de",
+  "duration_seconds": 270.629,
+  "midi_bytes": 27712,
+  "mp3_bytes": 5413138,
+  "midi_sha256": "cc9d6993f1909173c4bad0050c63e12b30b9f225d0bbdc88687d89cce8186505",
+  "mp3_sha256": "53db74dd95a20c977a0320afd8b663a2b0595ab223e28c027c219e4131061733",
+  "tracks": [
+    "Bass",
+    "Controllers",
+    "Drums",
+    "Piano LH",
+    "Piano RH",
+    "Strings",
+    "namgyeodun-majimak-mal"
+  ]
+}
